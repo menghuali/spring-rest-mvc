@@ -9,14 +9,14 @@ public interface CustomerService {
 
     List<Customer> listCustomers();
 
-    Customer getCustomerById(UUID id);
+    Customer getCustomerById(UUID id) throws ResourceNotFoundException;
 
     Customer createCustomer(Customer customer);
 
-    void update(UUID id, Customer customer) throws EntityNotFoundException;
+    void update(UUID id, Customer customer) throws ResourceNotFoundException;
 
     void delete(UUID id);
 
-    void path(UUID id, Customer customer) throws EntityNotFoundException;
+    void patch(UUID id, Customer customer) throws ResourceNotFoundException;
 
 }

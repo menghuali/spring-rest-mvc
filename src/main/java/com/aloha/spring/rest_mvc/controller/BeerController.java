@@ -7,6 +7,7 @@ import java.util.UUID;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -19,23 +20,30 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.spring.rest_mvc.model.Beer;
 import com.aloha.spring.rest_mvc.service.BeerService;
-import com.aloha.spring.rest_mvc.service.EntityNotFoundException;
+import com.aloha.spring.rest_mvc.service.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/beers")
+@RequestMapping(BeerController.ROOT_PATH)
 @RestController
 public class BeerController {
 
+    public static final String ROOT_PATH = "/api/v1/beers";
+    public static final String SUB_PATH_WITH_ID_VAR = "/{id}";
     private final BeerService service;
 
-    @GetMapping("/{id}")
-    public Beer getBeerById(@PathVariable(name = "id", required = true) UUID id) {
+    @GetMapping(SUB_PATH_WITH_ID_VAR)
+    public Beer getBeerById(@PathVariable UUID id) throws ResourceNotFoundException {
         log.debug("Get beer by id in contoller. id: {}", id);
-        return service.getBeerById(id);
+        Beer beer = service.getBeerById(id);
+        if (beer == null) {
+            throw new ResourceNotFoundException(Beer.class.getSimpleName(), id.toString());
+        } else {
+            return beer;
+        }
     }
 
     @GetMapping
@@ -51,33 +59,39 @@ public class BeerController {
         // return new ResponseEntity<>(created, headers, HttpStatus.CREATED);
 
         // A more concise implementation ...
-        return ResponseEntity.created(URI.create("/api/v1/beers/" + created.getId())).build();
+        return ResponseEntity.created(URI.create(ROOT_PATH + "/" + created.getId())).build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(SUB_PATH_WITH_ID_VAR)
     public ResponseEntity<Void> updateById(@PathVariable UUID id, @RequestBody Beer beer) {
         try {
             service.updateById(id, beer);
             return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT) // Without using ResponseEntity
-    @DeleteMapping("/{id}")
+    @DeleteMapping(SUB_PATH_WITH_ID_VAR)
     public void delete(@PathVariable UUID id) {
         service.delete(id);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(SUB_PATH_WITH_ID_VAR)
     public ResponseEntity<Void> patch(@PathVariable UUID id, @RequestBody Beer beer) {
         try {
-            service.path(id, beer);
+            service.patch(id, beer);
             return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
+    }
+
+    // Exception handler for specific controller
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<Void> handleNotFound(ResourceNotFoundException e) {
+        return ResponseEntity.notFound().build();
     }
 
 }

@@ -73,10 +73,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void update(UUID id, Customer customer) throws EntityNotFoundException {
+    public void update(UUID id, Customer customer) throws ResourceNotFoundException {
         Customer existing = repo.get(id);
         if (existing == null) {
-            throw new EntityNotFoundException(Customer.class.getSimpleName(), id.toString());
+            throw new ResourceNotFoundException(Customer.class.getSimpleName(), id.toString());
         }
         existing.setName(customer.getName());
         existing.setVersion(existing.getVersion() + 1);
@@ -89,10 +89,10 @@ public class CustomerServiceImpl implements CustomerService {
     }
 
     @Override
-    public void path(UUID id, Customer customer) throws EntityNotFoundException {
+    public void patch(UUID id, Customer customer) throws ResourceNotFoundException {
         Customer existing = repo.get(id);
         if (existing == null) {
-            throw new EntityNotFoundException(Customer.class.getSimpleName(), id.toString());
+            throw new ResourceNotFoundException(Customer.class.getSimpleName(), id.toString());
         }
         if (StringUtils.hasText(customer.getName())) {
             existing.setName(customer.getName());

@@ -96,10 +96,10 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public void updateById(UUID id, Beer beer) throws EntityNotFoundException {
+    public void updateById(UUID id, Beer beer) throws ResourceNotFoundException {
         Beer existing = repo.get(id);
         if (existing == null) {
-            throw new EntityNotFoundException(Beer.class.getSimpleName(), id.toString());
+            throw new ResourceNotFoundException(Beer.class.getSimpleName(), id.toString());
         }
         existing.setBeerName(beer.getBeerName());
         existing.setPrice(beer.getPrice());
@@ -117,10 +117,10 @@ public class BeerServiceImpl implements BeerService {
     }
 
     @Override
-    public void path(UUID id, Beer beer) throws EntityNotFoundException {
+    public void patch(UUID id, Beer beer) throws ResourceNotFoundException {
         Beer existing = repo.get(id);
         if (existing == null) {
-            throw new EntityNotFoundException(Beer.class.getSimpleName(), id.toString());
+            throw new ResourceNotFoundException(Beer.class.getSimpleName(), id.toString());
         }
 
         if (StringUtils.hasText(beer.getBeerName())) {

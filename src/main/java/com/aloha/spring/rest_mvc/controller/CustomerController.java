@@ -19,15 +19,17 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.aloha.spring.rest_mvc.model.Customer;
 import com.aloha.spring.rest_mvc.service.CustomerService;
-import com.aloha.spring.rest_mvc.service.EntityNotFoundException;
+import com.aloha.spring.rest_mvc.service.ResourceNotFoundException;
 
 import lombok.RequiredArgsConstructor;
 
 @RequiredArgsConstructor
-@RequestMapping("/api/v1/customers")
+@RequestMapping(CustomerController.ROOT_PATH)
 @RestController
 public class CustomerController {
 
+    public static final String ROOT_PATH = "/api/v1/customers";
+    public static final String SUB_PATH_WITH_ID_VAR = "/{id}";
     private final CustomerService service;
 
     @GetMapping
@@ -35,18 +37,23 @@ public class CustomerController {
         return service.listCustomers();
     }
 
-    @GetMapping("/{id}")
-    public Customer getCustomerById(@PathVariable(name = "id", required = true) UUID id) {
-        return service.getCustomerById(id);
+    @GetMapping(SUB_PATH_WITH_ID_VAR)
+    public Customer getCustomerById(@PathVariable UUID id) throws ResourceNotFoundException {
+        Customer customer = service.getCustomerById(id);
+        if (customer == null) {
+            throw new ResourceNotFoundException(Customer.class.getSimpleName(), id.toString());
+        } else {
+            return customer;
+        }
     }
 
     @PostMapping
-    public ResponseEntity<Void> postMethodName(@RequestBody Customer customer) {
+    public ResponseEntity<Void> createCustomer(@RequestBody Customer customer) {
         Customer created = service.createCustomer(customer);
-        return ResponseEntity.created(URI.create("/api/v1/customers/" + created.getId())).build();
+        return ResponseEntity.created(URI.create(ROOT_PATH + "/" + created.getId())).build();
     }
 
-    @PutMapping("/{id}")
+    @PutMapping(SUB_PATH_WITH_ID_VAR)
     public ResponseEntity<Void> updateCustomer(@PathVariable UUID id, @RequestBody Customer customer) {
         try {
             service.update(id, customer);
@@ -57,17 +64,17 @@ public class CustomerController {
     }
 
     @ResponseStatus(HttpStatus.NO_CONTENT)
-    @DeleteMapping("/{id}")
+    @DeleteMapping(SUB_PATH_WITH_ID_VAR)
     public void delete(@PathVariable UUID id) {
         service.delete(id);
     }
 
-    @PatchMapping("/{id}")
+    @PatchMapping(SUB_PATH_WITH_ID_VAR)
     public ResponseEntity<Void> patch(@PathVariable UUID id, @RequestBody Customer customer) {
         try {
-            service.path(id, customer);
+            service.patch(id, customer);
             return ResponseEntity.noContent().build();
-        } catch (EntityNotFoundException e) {
+        } catch (ResourceNotFoundException e) {
             return ResponseEntity.notFound().build();
         }
     }
